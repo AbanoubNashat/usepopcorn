@@ -12,7 +12,7 @@ const StarContainerStyle = {
 };
 
 const textStyle = {
-  lineHight: "1",
+  lineHeight: "1",
   margin: "0",
 };
 
