@@ -8,6 +8,7 @@ import MoviesList from "./components/MoviesList";
 import Summary from "./components/Summary";
 import WatchedMoviesList from "./components/WatchedMoviesList";
 
+
 const tempMovieData = [
   {
     imdbID: "tt1375666",
@@ -77,3 +78,4 @@ export default function App() {
     </>
   );
 }
+
