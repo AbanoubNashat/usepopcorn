@@ -28,6 +28,7 @@ export default function StarRating({ maxRating = 5 }) {
 
   function handleRating(rate) {
     setRating(rate);
+    setTempRating(0);
   }
   return (
     <div style={containerStyle}>
@@ -39,6 +40,7 @@ export default function StarRating({ maxRating = 5 }) {
             onRate={() => handleRating(index + 1)}
             onHoverIn={() => setTempRating(index + 1)}
             onHoverOut={() => setTempRating(0)}
+            disabled={rating > 0}
           ></Star>
         ))}
       </div>
@@ -47,14 +49,14 @@ export default function StarRating({ maxRating = 5 }) {
   );
 }
 
-function Star({ onRate, full, onHoverIn, onHoverOut }) {
+function Star({ onRate, full, onHoverIn, onHoverOut, disabled }) {
   return (
     <span
       role="button"
       style={starStyle}
       onClick={onRate}
-      onMouseEnter={onHoverIn}
-      onMouseLeave={onHoverOut}
+      onMouseEnter={disabled ? undefined : onHoverIn}
+      onMouseLeave={disabled ? undefined : onHoverOut}
     >
       {full ? (
         <svg
