@@ -61,17 +61,30 @@ export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState(tempWatchedData);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const query = "interstellar";
 
   useEffect(() => {
     // useEffect can't return a promise so we defined our async function first then called it inside the effect.
     async function fetchMovies() {
-      setIsLoading(true);
-      const response = await fetch(
-        `http://www.omdbapi.com/?apikey=${APIKey}&s=interstellar`,
-      );
-      const data = await response.json();
-      setMovies(data.Search);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const response = await fetch(
+          `http://www.omdbapi.com/?apikey=${APIKey}&s=${query}`,
+        );
+        if (!response.ok) {
+          throw new Error("Something went wrong with fetching movies");
+        }
+        const data = await response.json();
+        if (data.Response === "False") {
+          throw new Error("Wrong Search Value");
+        }
+        setMovies(data.Search);
+      } catch (error) {
+        setErrorMessage(error.message);
+      } finally {
+        setIsLoading(false);
+      }
     }
     // we called the function to actually work as we just defined the async function then we called it to actually do the work
     fetchMovies();
@@ -85,11 +98,16 @@ export default function App() {
       </NavBar>
       <Main>
         <Box>
-          {isLoading ? (
+          {/* {isLoading ? (
             <Loader></Loader>
           ) : (
             <MoviesList movies={movies}></MoviesList>
+          )} */}
+          {isLoading && <Loader></Loader>}
+          {!isLoading && !errorMessage && (
+            <MoviesList movies={movies}></MoviesList>
           )}
+          {errorMessage && <ErrorMessage message={errorMessage}></ErrorMessage>}
         </Box>
         <Box>
           <Summary watched={watched}></Summary>
@@ -102,4 +120,12 @@ export default function App() {
 
 function Loader() {
   return <p className="loader">Loading ...</p>;
+}
+
+function ErrorMessage({ message }) {
+  return (
+    <p className="error">
+      <span>⛔</span> {message}
+    </p>
+  );
 }
