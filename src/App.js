@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NavBar from "./components/NavBar";
 import Main from "./components/Main";
 import SearchBar from "./components/SearchBar";
@@ -7,7 +7,6 @@ import Box from "./components/Box";
 import MoviesList from "./components/MoviesList";
 import Summary from "./components/Summary";
 import WatchedMoviesList from "./components/WatchedMoviesList";
-
 
 const tempMovieData = [
   {
@@ -56,9 +55,27 @@ const tempWatchedData = [
   },
 ];
 
+const APIKey = "890190d";
+
 export default function App() {
-  const [movies, setMovies] = useState(tempMovieData);
+  const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState(tempWatchedData);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // useEffect can't return a promise so we defined our async function first then called it inside the effect.
+    async function fetchMovies() {
+      setIsLoading(true);
+      const response = await fetch(
+        `http://www.omdbapi.com/?apikey=${APIKey}&s=interstellar`,
+      );
+      const data = await response.json();
+      setMovies(data.Search);
+      setIsLoading(false);
+    }
+    // we called the function to actually work as we just defined the async function then we called it to actually do the work
+    fetchMovies();
+  }, []);
 
   return (
     <>
@@ -68,7 +85,11 @@ export default function App() {
       </NavBar>
       <Main>
         <Box>
-          <MoviesList movies={movies}></MoviesList>
+          {isLoading ? (
+            <Loader></Loader>
+          ) : (
+            <MoviesList movies={movies}></MoviesList>
+          )}
         </Box>
         <Box>
           <Summary watched={watched}></Summary>
@@ -79,3 +100,6 @@ export default function App() {
   );
 }
 
+function Loader() {
+  return <p className="loader">Loading ...</p>;
+}
