@@ -7,6 +7,7 @@ import Box from "./components/Box";
 import MoviesList from "./components/MoviesList";
 import Summary from "./components/Summary";
 import WatchedMoviesList from "./components/WatchedMoviesList";
+import StarRating from "./StarRating";
 
 const tempMovieData = [
   {
@@ -58,17 +59,27 @@ const tempWatchedData = [
 const APIKey = "890190d";
 
 export default function App() {
+  const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState(tempWatchedData);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const query = "interstellar";
+  const [selectedId, setSelectedID] = useState(null);
+  // const tempQuery = "interstellar";
+
+  function handleSelectedId(id) {
+    setSelectedID((selectedId) => (selectedId === id ? null : id));
+  }
+  function handleBackOnClick() {
+    setSelectedID(null);
+  }
 
   useEffect(() => {
     // useEffect can't return a promise so we defined our async function first then called it inside the effect.
     async function fetchMovies() {
       try {
         setIsLoading(true);
+        setErrorMessage("");
         const response = await fetch(
           `http://www.omdbapi.com/?apikey=${APIKey}&s=${query}`,
         );
@@ -86,14 +97,20 @@ export default function App() {
         setIsLoading(false);
       }
     }
+
+    if (query.length < 2) {
+      setMovies([]);
+      setErrorMessage("");
+      return;
+    }
     // we called the function to actually work as we just defined the async function then we called it to actually do the work
     fetchMovies();
-  }, []);
+  }, [query]);
 
   return (
     <>
       <NavBar>
-        <SearchBar></SearchBar>
+        <SearchBar query={query} setQuery={setQuery}></SearchBar>
         <NumResults movies={movies}></NumResults>
       </NavBar>
       <Main>
@@ -105,16 +122,114 @@ export default function App() {
           )} */}
           {isLoading && <Loader></Loader>}
           {!isLoading && !errorMessage && (
-            <MoviesList movies={movies}></MoviesList>
+            <MoviesList
+              handleOnMovieClick={handleSelectedId}
+              movies={movies}
+            ></MoviesList>
           )}
           {errorMessage && <ErrorMessage message={errorMessage}></ErrorMessage>}
         </Box>
         <Box>
-          <Summary watched={watched}></Summary>
-          <WatchedMoviesList watched={watched}></WatchedMoviesList>
+          {selectedId ? (
+            <MovieDetails
+              handleOnBackClick={handleBackOnClick}
+              selectedId={selectedId}
+            ></MovieDetails>
+          ) : (
+            <>
+              <Summary watched={watched}></Summary>
+              <WatchedMoviesList watched={watched}></WatchedMoviesList>
+            </>
+          )}
         </Box>
       </Main>
     </>
+  );
+}
+
+function MovieDetails({ selectedId, handleOnBackClick }) {
+  const [movie, setMovie] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const {
+    Title: title,
+    Poster: poster,
+    imdbRating,
+    Director: director,
+    Released: released,
+    Plot: plot,
+    Genre: genre,
+    Actors: actors,
+    Year: year,
+    Runtime: runtime,
+  } = movie;
+
+  useEffect(() => {
+    async function fetchMovieDetails() {
+      try {
+        setIsLoading(true);
+        const response = await fetch(
+          `http://www.omdbapi.com/?apikey=${APIKey}&i=${selectedId}`,
+        );
+        if (!response.ok) {
+          throw new Error("There is a problem with fetching movie details");
+        }
+        const data = await response.json();
+        if (data.Response === "False") {
+          throw new Error("Wrong Search Value");
+        }
+        console.log(data);
+        setMovie(data);
+        setIsLoading(false);
+      } catch (error) {
+        setErrorMessage(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchMovieDetails();
+  }, [selectedId]);
+
+  return (
+    <div className="details">
+      {isLoading && <Loader></Loader>}
+      {!isLoading && !errorMessage && (
+        <>
+          <header>
+            <button onClick={handleOnBackClick} className="btn-back">
+              &larr;
+            </button>
+            <img src={poster} alt={`Poster of ${title}`} />
+            <div className="details-overview">
+              <h2>{title}</h2>
+              <p>
+                {released} &bull; {runtime}
+              </p>
+              <p>{genre}</p>
+              <p>
+                <span>⭐</span> {imdbRating}
+              </p>
+            </div>
+          </header>
+          <section>
+            <div className="rating">
+              <StarRating
+                defaultRating={0}
+                maxRating={10}
+                size={23}
+              ></StarRating>
+            </div>
+            <p>
+              <em>{plot}</em>
+            </p>
+            <p>Actors: {actors}</p>
+            <p>Director: {director}</p>
+          </section>
+        </>
+      )}
+      {errorMessage && <ErrorMessage message={errorMessage}></ErrorMessage>}
+    </div>
   );
 }
 

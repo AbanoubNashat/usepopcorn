@@ -12,13 +12,6 @@ const StarContainerStyle = {
   gap: "4px",
 };
 
-const starStyle = {
-  height: "48px",
-  width: "48px",
-  display: "block",
-  cursor: "pointer",
-};
-
 StarRating.propType = {
   maxRating: PropTypes.number,
   color: PropTypes.string,
@@ -66,6 +59,7 @@ export default function StarRating({
             onHoverOut={() => setTempRating(0)}
             disabled={rating > 0}
             color={color}
+            size={size}
           ></Star>
         ))}
       </div>
@@ -78,7 +72,13 @@ export default function StarRating({
   );
 }
 
-function Star({ onRate, full, onHoverIn, onHoverOut, disabled, color }) {
+function Star({ onRate, full, onHoverIn, onHoverOut, disabled, color, size }) {
+  const starStyle = {
+    height: `${size}px`,
+    width: `${size}px`,
+    display: "block",
+    cursor: "pointer",
+  };
   return (
     <span
       role="button"

@@ -1,10 +1,14 @@
-import  Movie  from "./Movie";
+import Movie from "./Movie";
 
-export default function MoviesList({ movies }) {
+export default function MoviesList({ movies, handleOnMovieClick }) {
   return (
-    <ul className="list">
+    <ul className="list list-movies">
       {movies?.map((movie) => (
-        <Movie movie={movie} key={movie.imdbID}></Movie>
+        <Movie
+          handleOnMovieClick={handleOnMovieClick}
+          movie={movie}
+          key={movie.imdbID}
+        ></Movie>
       ))}
     </ul>
   );
