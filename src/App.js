@@ -7,7 +7,6 @@ import Box from "./components/Box";
 import MoviesList from "./components/MoviesList";
 import Summary from "./components/Summary";
 import WatchedMoviesList from "./components/WatchedMoviesList";
-import StarRating from "./components/StarRating";
 import Loader from "./components/Loader";
 import ErrorMessage from "./components/ErrorMessage";
 import MovieDetails from "./components/MovieDetails";
@@ -39,13 +38,17 @@ export default function App() {
   }
 
   useEffect(() => {
+    // it's more like an event now when typing in the search box so we can attach it like with direct DOM manipulation.
     // useEffect can't return a promise so we defined our async function first then called it inside the effect.
+    // we make the controller here to stop every new request till the one we actually want we provide it with the header object in fetch then return it with the cleanup function in the
+    const controller = new AbortController();
     async function fetchMovies() {
       try {
         setIsLoading(true);
         setErrorMessage("");
         const response = await fetch(
           `http://www.omdbapi.com/?apikey=${APIKey}&s=${query}`,
+          { signal: controller.signal },
         );
         if (!response.ok) {
           throw new Error("Something went wrong with fetching movies");
@@ -56,7 +59,9 @@ export default function App() {
         }
         setMovies(data.Search);
       } catch (error) {
-        setErrorMessage(error.message);
+        if (error.name !== "AbortError") {
+          setErrorMessage(error.message);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -69,6 +74,9 @@ export default function App() {
     }
     // we called the function to actually work as we just defined the async function then we called it to actually do the work
     fetchMovies();
+    return function () {
+      controller.abort();
+    };
   }, [query]);
 
   return (

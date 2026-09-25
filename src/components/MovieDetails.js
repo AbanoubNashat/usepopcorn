@@ -73,6 +73,30 @@ export default function MovieDetails({
     fetchMovieDetails();
   }, [selectedId]);
 
+  useEffect(() => {
+    // this condition to prevent undefined to be shown
+    if (!title) return;
+    document.title = title;
+
+    return () => {
+      document.title = "usePopcorn";
+    };
+  }, [title]);
+
+  useEffect(() => {
+    // plain dom manipulation should be in effects like this and we need to clean up the event that attached to the component or it will make a lot of duplicate events that will affect memory and performance and the callback function should be the same for adding and removing the event listener so we make the function out of them.
+    function onPressEscape(e) {
+      if (e.code === "Escape") {
+        handleOnBackClick();
+      }
+    }
+    document.addEventListener("keydown", onPressEscape);
+
+    return () => {
+      document.removeEventListener("keydown", onPressEscape);
+    };
+  }, [handleOnBackClick]);
+
   return (
     <div className="details">
       {isLoading && <Loader></Loader>}
