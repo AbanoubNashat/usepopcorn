@@ -10,22 +10,14 @@ import WatchedMoviesList from "./components/WatchedMoviesList";
 import Loader from "./components/Loader";
 import ErrorMessage from "./components/ErrorMessage";
 import MovieDetails from "./components/MovieDetails";
-
-const APIKey = "890190d";
+import { useMovies } from "./hooks/useMovies";
+import { useLocalStorageState } from "./hooks/useLocalStroageState";
 
 export default function App() {
   const [query, setQuery] = useState("");
-  const [movies, setMovies] = useState([]);
-  // const [watched, setWatched] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [selectedId, setSelectedID] = useState(null);
-  // const tempQuery = "interstellar";
-  // we can give the useState a pure callback function to do some computations if needed in the initial render of the component.that is called lazy initial state.
-  const [watched, setWatched] = useState(() => {
-    const movies = localStorage.getItem("watched");
-    return JSON.parse(movies);
-  });
+  const [watched, setWatched] = useLocalStorageState([], "watched");
+  const { movies, isLoading, errorMessage } = useMovies(query);
 
   function handleSelectedId(id) {
     setSelectedID((selectedId) => (selectedId === id ? null : id));
@@ -42,53 +34,6 @@ export default function App() {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
-
-  // we can handle this sideEffect in the event handlers above but with this way we will keep the localStorage in sync with every change for the watched list automatically without handling the adding and removing the an item with it.
-  useEffect(() => {
-    localStorage.setItem("watched", JSON.stringify(watched));
-  }, [watched]);
-
-  useEffect(() => {
-    // it's more like an event now when typing in the search box so we can attach it like with direct DOM manipulation.
-    // useEffect can't return a promise so we defined our async function first then called it inside the effect.
-    // we make the controller here to stop every new request till the one we actually want we provide it with the header object in fetch then return it with the cleanup function in the
-    const controller = new AbortController();
-    async function fetchMovies() {
-      try {
-        setIsLoading(true);
-        setErrorMessage("");
-        const response = await fetch(
-          `http://www.omdbapi.com/?apikey=${APIKey}&s=${query}`,
-          { signal: controller.signal },
-        );
-        if (!response.ok) {
-          throw new Error("Something went wrong with fetching movies");
-        }
-        const data = await response.json();
-        if (data.Response === "False") {
-          throw new Error("Wrong Search Value");
-        }
-        setMovies(data.Search);
-      } catch (error) {
-        if (error.name !== "AbortError") {
-          setErrorMessage(error.message);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (query.length < 2) {
-      setMovies([]);
-      setErrorMessage("");
-      return;
-    }
-    // we called the function to actually work as we just defined the async function then we called it to actually do the work
-    fetchMovies();
-    return function () {
-      controller.abort();
-    };
-  }, [query]);
 
   return (
     <>
