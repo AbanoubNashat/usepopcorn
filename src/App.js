@@ -16,11 +16,16 @@ const APIKey = "890190d";
 export default function App() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
+  // const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedId, setSelectedID] = useState(null);
   // const tempQuery = "interstellar";
+  // we can give the useState a pure callback function to do some computations if needed in the initial render of the component.that is called lazy initial state.
+  const [watched, setWatched] = useState(() => {
+    const movies = localStorage.getItem("watched");
+    return JSON.parse(movies);
+  });
 
   function handleSelectedId(id) {
     setSelectedID((selectedId) => (selectedId === id ? null : id));
@@ -36,6 +41,12 @@ export default function App() {
   function handleDeleteWatchedMovie(id) {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
+
+
+  // we can handle this sideEffect in the event handlers above but with this way we will keep the localStorage in sync with every change for the watched list automatically without handling the adding and removing the an item with it.
+  useEffect(() => {
+    localStorage.setItem("watched", JSON.stringify(watched));
+  }, [watched]);
 
   useEffect(() => {
     // it's more like an event now when typing in the search box so we can attach it like with direct DOM manipulation.
