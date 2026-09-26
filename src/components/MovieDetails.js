@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Loader from "./Loader";
 import ErrorMessage from "./ErrorMessage";
 import StarRating from "./StarRating";
@@ -21,6 +21,12 @@ export default function MovieDetails({
     (movie) => movie.imdbID === selectedId,
   )?.userRating;
 
+  const countRef = useRef(0);
+  // we always manipulate refs with effects or event handlers don't forget it.
+  useEffect(() => {
+    if (userRating) countRef.current++;
+  }, [userRating]);
+
   const {
     Title: title,
     Poster: poster,
@@ -42,6 +48,7 @@ export default function MovieDetails({
       imdbRating: Number(imdbRating),
       userRating: userRating,
       runtime: Number(runtime.split(" ").at(0)),
+      ratingDecisions: countRef.current,
     };
     onAddWatchedMovie(watchedMovie);
     handleOnBackClick();
