@@ -1,26 +1,35 @@
 import { useRef, useEffect } from "react";
+import { useKey } from "../hooks/useKey";
 
 export default function SearchBar({ query, setQuery }) {
   // Right way to select DOM Elements in React to make it declarative.
   // the .current property is the way we can access that element after referencing it DON'T FORGET IT.
   const inputElement = useRef(null);
 
-  useEffect(() => {
-    const callback = (e) => {
-      if (document.activeElement === inputElement.current) {
-        return;
-      }
+  // useEffect(() => {
+  //   const callback = (e) => {
+  //     if (document.activeElement === inputElement.current) {
+  //       return;
+  //     }
 
-      if (e.code === "Enter") {
-        inputElement.current.focus();
-        setQuery("");
-      }
-    };
-    document.addEventListener("keydown", callback);
-    return () => {
-      document.removeEventListener("keydown", callback);
-    };
-  }, [setQuery]);
+  //     if (e.code === "Enter") {
+  //       inputElement.current.focus();
+  //       setQuery("");
+  //     }
+  //   };
+  //   document.addEventListener("keydown", callback);
+  //   return () => {
+  //     document.removeEventListener("keydown", callback);
+  //   };
+  // }, [setQuery]);
+
+  useKey("Enter",function () {
+     if (document.activeElement === inputElement.current) {
+       return;
+     }
+     inputElement.current.focus();
+     setQuery("");
+  })
 
   // how to not select DOM Elements:
   // useEffect(() => {
